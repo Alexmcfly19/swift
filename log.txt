@@ -1,68 +1,72 @@
 import UIKit
-import MaterialComponents
 
 class LoginViewController: UIViewController {
     
-    private let emailField: MDCOutlinedTextField = {
-        let field = MDCOutlinedTextField()
-        field.label.text = "Email"
-        field.placeholder = "Enter your email"
-        field.leadingAssistiveLabel.text = "Required"
+    private let titleLabel: UILabel = {
+        let label = UILabel()
+        label.text = "Welcome Back"
+        label.font = UIFont.boldSystemFont(ofSize: 28)
+        label.textAlignment = .center
+        return label
+    }()
+    
+    private let emailField: UITextField = {
+        let field = UITextField()
+        field.placeholder = "Email"
+        field.borderStyle = .roundedRect
         field.autocapitalizationType = .none
         field.keyboardType = .emailAddress
         return field
     }()
     
-    private let passwordField: MDCOutlinedTextField = {
-        let field = MDCOutlinedTextField()
-        field.label.text = "Password"
-        field.placeholder = "Enter your password"
+    private let passwordField: UITextField = {
+        let field = UITextField()
+        field.placeholder = "Password"
+        field.borderStyle = .roundedRect
         field.isSecureTextEntry = true
         return field
     }()
     
-    private let loginButton: MDCButton = {
-        let button = MDCButton()
+    private let loginButton: UIButton = {
+        let button = UIButton(type: .system)
         button.setTitle("Login", for: .normal)
         button.setTitleColor(.white, for: .normal)
-        button.setBackgroundColor(.systemBlue)
-        button.layer.cornerRadius = 8
+        button.backgroundColor = UIColor.systemBlue
+        button.layer.cornerRadius = 10
+        button.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        return button
+    }()
+    
+    private let signupButton: UIButton = {
+        let button = UIButton(type: .system)
+        button.setTitle("Don’t have an account? Sign Up", for: .normal)
+        button.setTitleColor(.systemGray, for: .normal)
+        button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
         return button
     }()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         view.backgroundColor = .systemBackground
-        
         setupUI()
     }
     
     private func setupUI() {
-        view.addSubview(emailField)
-        view.addSubview(passwordField)
-        view.addSubview(loginButton)
+        let stackView = UIStackView(arrangedSubviews: [titleLabel, emailField, passwordField, loginButton, signupButton])
+        stackView.axis = .vertical
+        stackView.spacing = 20
+        stackView.translatesAutoresizingMaskIntoConstraints = false
         
-        // Layout
-        emailField.translatesAutoresizingMaskIntoConstraints = false
-        passwordField.translatesAutoresizingMaskIntoConstraints = false
-        loginButton.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(stackView)
         
         NSLayoutConstraint.activate([
-            emailField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100),
-            emailField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
-            emailField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
-            
-            passwordField.topAnchor.constraint(equalTo: emailField.bottomAnchor, constant: 20),
-            passwordField.leadingAnchor.constraint(equalTo: emailField.leadingAnchor),
-            passwordField.trailingAnchor.constraint(equalTo: emailField.trailingAnchor),
-            
-            loginButton.topAnchor.constraint(equalTo: passwordField.bottomAnchor, constant: 40),
-            loginButton.leadingAnchor.constraint(equalTo: emailField.leadingAnchor),
-            loginButton.trailingAnchor.constraint(equalTo: emailField.trailingAnchor),
-            loginButton.heightAnchor.constraint(equalToConstant: 50)
+            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
+            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
+            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30)
         ])
         
         loginButton.addTarget(self, action: #selector(handleLogin), for: .touchUpInside)
+        signupButton.addTarget(self, action: #selector(handleSignup), for: .touchUpInside)
     }
     
     @objc private func handleLogin() {
@@ -70,10 +74,21 @@ class LoginViewController: UIViewController {
         let password = passwordField.text ?? ""
         
         if email.isEmpty || password.isEmpty {
-            print("Please fill all fields")
+            showAlert(message: "Please fill in all fields")
         } else {
             print("Login with Email: \(email), Password: \(password)")
             // TODO: Add API authentication here
         }
+    }
+    
+    @objc private func handleSignup() {
+        print("Navigate to Sign Up page")
+        // TODO: Push SignUpViewController()
+    }
+    
+    private func showAlert(message: String) {
+        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
+        alert.addAction(UIAlertAction(title: "OK", style: .default))
+        present(alert, animated: true)
     }
 }
