@@ -1,0 +1,79 @@
+import UIKit
+import MaterialComponents
+
+class LoginViewController: UIViewController {
+    
+    private let emailField: MDCOutlinedTextField = {
+        let field = MDCOutlinedTextField()
+        field.label.text = "Email"
+        field.placeholder = "Enter your email"
+        field.leadingAssistiveLabel.text = "Required"
+        field.autocapitalizationType = .none
+        field.keyboardType = .emailAddress
+        return field
+    }()
+    
+    private let passwordField: MDCOutlinedTextField = {
+        let field = MDCOutlinedTextField()
+        field.label.text = "Password"
+        field.placeholder = "Enter your password"
+        field.isSecureTextEntry = true
+        return field
+    }()
+    
+    private let loginButton: MDCButton = {
+        let button = MDCButton()
+        button.setTitle("Login", for: .normal)
+        button.setTitleColor(.white, for: .normal)
+        button.setBackgroundColor(.systemBlue)
+        button.layer.cornerRadius = 8
+        return button
+    }()
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+        view.backgroundColor = .systemBackground
+        
+        setupUI()
+    }
+    
+    private func setupUI() {
+        view.addSubview(emailField)
+        view.addSubview(passwordField)
+        view.addSubview(loginButton)
+        
+        // Layout
+        emailField.translatesAutoresizingMaskIntoConstraints = false
+        passwordField.translatesAutoresizingMaskIntoConstraints = false
+        loginButton.translatesAutoresizingMaskIntoConstraints = false
+        
+        NSLayoutConstraint.activate([
+            emailField.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 100),
+            emailField.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 20),
+            emailField.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -20),
+            
+            passwordField.topAnchor.constraint(equalTo: emailField.bottomAnchor, constant: 20),
+            passwordField.leadingAnchor.constraint(equalTo: emailField.leadingAnchor),
+            passwordField.trailingAnchor.constraint(equalTo: emailField.trailingAnchor),
+            
+            loginButton.topAnchor.constraint(equalTo: passwordField.bottomAnchor, constant: 40),
+            loginButton.leadingAnchor.constraint(equalTo: emailField.leadingAnchor),
+            loginButton.trailingAnchor.constraint(equalTo: emailField.trailingAnchor),
+            loginButton.heightAnchor.constraint(equalToConstant: 50)
+        ])
+        
+        loginButton.addTarget(self, action: #selector(handleLogin), for: .touchUpInside)
+    }
+    
+    @objc private func handleLogin() {
+        let email = emailField.text ?? ""
+        let password = passwordField.text ?? ""
+        
+        if email.isEmpty || password.isEmpty {
+            print("Please fill all fields")
+        } else {
+            print("Login with Email: \(email), Password: \(password)")
+            // TODO: Add API authentication here
+        }
+    }
+}
