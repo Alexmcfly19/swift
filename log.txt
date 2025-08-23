@@ -1,94 +1,61 @@
-import UIKit
+import SwiftUI
 
-class LoginViewController: UIViewController {
+struct LoginView: View {
+    @State private var email: String = ""
+    @State private var password: String = ""
+    @State private var showAlert: Bool = false
     
-    private let titleLabel: UILabel = {
-        let label = UILabel()
-        label.text = "Welcome Back"
-        label.font = UIFont.boldSystemFont(ofSize: 28)
-        label.textAlignment = .center
-        return label
-    }()
-    
-    private let emailField: UITextField = {
-        let field = UITextField()
-        field.placeholder = "Email"
-        field.borderStyle = .roundedRect
-        field.autocapitalizationType = .none
-        field.keyboardType = .emailAddress
-        return field
-    }()
-    
-    private let passwordField: UITextField = {
-        let field = UITextField()
-        field.placeholder = "Password"
-        field.borderStyle = .roundedRect
-        field.isSecureTextEntry = true
-        return field
-    }()
-    
-    private let loginButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Login", for: .normal)
-        button.setTitleColor(.white, for: .normal)
-        button.backgroundColor = UIColor.systemBlue
-        button.layer.cornerRadius = 10
-        button.heightAnchor.constraint(equalToConstant: 50).isActive = true
-        return button
-    }()
-    
-    private let signupButton: UIButton = {
-        let button = UIButton(type: .system)
-        button.setTitle("Don’t have an account? Sign Up", for: .normal)
-        button.setTitleColor(.systemGray, for: .normal)
-        button.titleLabel?.font = UIFont.systemFont(ofSize: 14)
-        return button
-    }()
-    
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        view.backgroundColor = .systemBackground
-        setupUI()
-    }
-    
-    private func setupUI() {
-        let stackView = UIStackView(arrangedSubviews: [titleLabel, emailField, passwordField, loginButton, signupButton])
-        stackView.axis = .vertical
-        stackView.spacing = 20
-        stackView.translatesAutoresizingMaskIntoConstraints = false
-        
-        view.addSubview(stackView)
-        
-        NSLayoutConstraint.activate([
-            stackView.centerYAnchor.constraint(equalTo: view.centerYAnchor),
-            stackView.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 30),
-            stackView.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -30)
-        ])
-        
-        loginButton.addTarget(self, action: #selector(handleLogin), for: .touchUpInside)
-        signupButton.addTarget(self, action: #selector(handleSignup), for: .touchUpInside)
-    }
-    
-    @objc private func handleLogin() {
-        let email = emailField.text ?? ""
-        let password = passwordField.text ?? ""
-        
-        if email.isEmpty || password.isEmpty {
-            showAlert(message: "Please fill in all fields")
-        } else {
-            print("Login with Email: \(email), Password: \(password)")
-            // TODO: Add API authentication here
+    var body: some View {
+        VStack(spacing: 20) {
+            Text("Welcome Back")
+                .font(.largeTitle)
+                .fontWeight(.bold)
+                .padding(.bottom, 40)
+            
+            TextField("Email", text: $email)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+                .keyboardType(.emailAddress)
+                .autocapitalization(.none)
+            
+            SecureField("Password", text: $password)
+                .padding()
+                .background(Color(.systemGray6))
+                .cornerRadius(10)
+            
+            Button(action: {
+                if email.isEmpty || password.isEmpty {
+                    showAlert = true
+                } else {
+                    print("Login with Email: \(email), Password: \(password)")
+                }
+            }) {
+                Text("Login")
+                    .foregroundColor(.white)
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.blue)
+                    .cornerRadius(10)
+            }
+            
+            Button(action: {
+                print("Navigate to Sign Up page")
+            }) {
+                Text("Don’t have an account? Sign Up")
+                    .foregroundColor(.gray)
+                    .font(.footnote)
+            }
+        }
+        .padding(.horizontal, 30)
+        .alert(isPresented: $showAlert) {
+            Alert(title: Text("Error"), message: Text("Please fill in all fields"), dismissButton: .default(Text("OK")))
         }
     }
-    
-    @objc private func handleSignup() {
-        print("Navigate to Sign Up page")
-        // TODO: Push SignUpViewController()
-    }
-    
-    private func showAlert(message: String) {
-        let alert = UIAlertController(title: "Error", message: message, preferredStyle: .alert)
-        alert.addAction(UIAlertAction(title: "OK", style: .default))
-        present(alert, animated: true)
+}
+
+struct LoginView_Previews: PreviewProvider {
+    static var previews: some View {
+        LoginView()
     }
 }
