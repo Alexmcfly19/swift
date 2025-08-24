@@ -1,61 +1,87 @@
 import SwiftUI
 
-struct LoginView: View {
-    @State private var email: String = ""
-    @State private var password: String = ""
-    @State private var showAlert: Bool = false
-    
-    var body: some View {
-        VStack(spacing: 20) {
-            Text("Welcome Back")
-                .font(.largeTitle)
-                .fontWeight(.bold)
-                .padding(.bottom, 40)
-            
-            TextField("Email", text: $email)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-                .keyboardType(.emailAddress)
-                .autocapitalization(.none)
-            
-            SecureField("Password", text: $password)
-                .padding()
-                .background(Color(.systemGray6))
-                .cornerRadius(10)
-            
-            Button(action: {
-                if email.isEmpty || password.isEmpty {
-                    showAlert = true
-                } else {
-                    print("Login with Email: \(email), Password: \(password)")
-                }
-            }) {
-                Text("Login")
-                    .foregroundColor(.white)
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.blue)
-                    .cornerRadius(10)
-            }
-            
-            Button(action: {
-                print("Navigate to Sign Up page")
-            }) {
-                Text("Don’t have an account? Sign Up")
-                    .foregroundColor(.gray)
-                    .font(.footnote)
-            }
+struct ContentView: View {
+  var body: some View {
+    Rectangle()
+      .foregroundColor(.clear)
+      .frame(width: 420, height: 929)
+      .background(Color(red: 0.50, green: 0.23, blue: 0.27).opacity(0.50))
+      .blur(radius: 15.50))
+    Text("ReChord")
+      .font(Font.custom("Roboto", size: 64))
+      .foregroundColor(.white)
+    Rectangle()
+      .foregroundColor(.clear)
+      .frame(width: 345, height: 63)
+      .background(Color(red: 0.85, green: 0.85, blue: 0.85))
+      .cornerRadius(10)
+    Text("enter your email or phone number")
+      .font(Font.custom("Roboto", size: 16).weight(.light))
+      .foregroundColor(Color(red: 0.39, green: 0.39, blue: 0.39))
+    Rectangle()
+      .foregroundColor(.clear)
+      .frame(width: 345, height: 41)
+      .background(Color(red: 0.04, green: 0.25, blue: 0.48))
+      .cornerRadius(20)
+    Text("Continue")
+      .font(Font.custom("Roboto", size: 16))
+      .foregroundColor(.white)
+    Text("or")
+      .font(Font.custom("Roboto", size: 16))
+      .foregroundColor(.white)
+    ZStack() {
+      HStack(alignment: .top, spacing: 15) {
+        ZStack() {
+
         }
-        .padding(.horizontal, 30)
-        .alert(isPresented: $showAlert) {
-            Alert(title: Text("Error"), message: Text("Please fill in all fields"), dismissButton: .default(Text("OK")))
-        }
+        .frame(width: 24, height: 24)
+        .background(.white)
+        Text("Continue with Google")
+          .font(Font.custom("Roboto", size: 20).weight(.medium))
+          .foregroundColor(Color(red: 0, green: 0, blue: 0).opacity(0.54))
+      }
+      .padding(15)
+      .background(.white)
+      .cornerRadius(10)
+      .offset(x: 0, y: 0)
     }
+    .frame(width: 345, height: 54)
+    .background(.white)
+    .cornerRadius(10)
+    .shadow(
+      color: Color(red: 0, green: 0, blue: 0, opacity: 0.17), radius: 3, y: 2
+    )
+    ZStack() {
+      HStack(alignment: .top, spacing: 15) {
+        ZStack() {
+
+        }
+        .frame(width: 24, height: 24)
+        .background(.black)
+        Text("Continue with Apple")
+          .font(Font.custom("SF Pro Display", size: 20).weight(.medium))
+          .foregroundColor(.white)
+      }
+      .padding(15)
+      .background(.black)
+      .cornerRadius(10)
+      .offset(x: 0.50, y: 0)
+    }
+    .frame(width: 345, height: 54)
+    .background(.black)
+    .cornerRadius(10)
+    .shadow(
+      color: Color(red: 0, green: 0, blue: 0, opacity: 0.17), radius: 3, y: 2
+    )
+    ZStack() {
+
+    }
+    .frame(width: 39.18, height: 43);
+  }
 }
 
-struct LoginView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginView()
-    }
+struct ContentView_Previews: PreviewProvider {
+  static var previews: some View {
+    ContentView()
+  }
 }
