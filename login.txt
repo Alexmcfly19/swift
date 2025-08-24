@@ -1,0 +1,99 @@
+struct LoginView: View {
+    @State private var emailOrPhone: String = ""
+    
+    var body: some View {
+        ZStack {
+            
+            Image("earth_bg") 
+                .resizable()
+                .scaledToFill()
+                .ignoresSafeArea()
+            
+            // Dark overlay for readability
+            LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.6), Color.black.opacity(0.3)]),
+                           startPoint: .top,
+                           endPoint: .bottom)
+                .ignoresSafeArea()
+            
+            VStack(spacing: 30) {
+                Spacer()
+                
+                // 🎵 Logo + Title
+                VStack(spacing: 10) {
+                    Image("logo") 
+                        .resizable()
+                        .scaledToFit()
+                        .frame(width: 120, height: 120)
+                    
+                    Text("ReChord")
+                        .font(.system(size: 36, weight: .bold))
+                        .foregroundColor(.white)
+                }
+                
+                Spacer()
+                
+                
+                TextField("enter your email or phone number", text: $emailOrPhone)
+                    .padding()
+                    .background(Color(.systemGray6))
+                    .cornerRadius(10)
+                    .padding(.horizontal, 32)
+                
+                // 🔵 Continue button
+                Button(action: {
+                    // handle continue action
+                }) {
+                    Text("Continue")
+                        .fontWeight(.semibold)
+                        .frame(maxWidth: .infinity)
+                        .padding()
+                        .background(Color.blue)
+                        .foregroundColor(.white)
+                        .cornerRadius(10)
+                }
+                .padding(.horizontal, 32)
+                
+                Text("or")
+                    .foregroundColor(.gray)
+                
+                
+                Button(action: {
+                    // handle Google sign in
+                }) {
+                    HStack {
+                        Image(systemName: "globe") 
+                            .foregroundColor(.black)
+                        Text("Continue with Google")
+                            .foregroundColor(.black)
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.white)
+                    .cornerRadius(10)
+                }
+                .padding(.horizontal, 32)
+                
+                
+                Button(action: {
+                    // handle Apple sign in
+                }) {
+                    HStack {
+                        Image(systemName: "applelogo")
+                            .foregroundColor(.white)
+                        Text("Continue with Apple")
+                            .foregroundColor(.white)
+                            .fontWeight(.semibold)
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .background(Color.black)
+                    .cornerRadius(10)
+                }
+                .padding(.horizontal, 32)
+                
+                Spacer()
+            }
+        }
+    }
+}
