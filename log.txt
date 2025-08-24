@@ -2,101 +2,121 @@ import SwiftUI
 
 struct LoginView: View {
     @State private var emailOrPhone: String = ""
+    @State private var isLoading: Bool = false
+    @State private var loginMessage: String = ""
+    @State private var navigateToOTP = false
     
     var body: some View {
-        ZStack {
-            // Background gradient + image
-            LinearGradient(gradient: Gradient(colors: [Color.black, Color.blue.opacity(0.3)]),
-                           startPoint: .top,
-                           endPoint: .bottom)
-                .ignoresSafeArea()
-            
-            VStack(spacing: 30) {
-                Spacer()
+        NavigationView {
+            ZStack {
+                Image("earth_bg")
+                    .resizable()
+                    .scaledToFill()
+                    .ignoresSafeArea()
                 
-                // Logo + Title
-                VStack(spacing: 10) {
-                    Image(systemName: "waveform.path.ecg") 
-                        .resizable()
-                        .scaledToFit()
-                        .frame(width: 80, height: 80)
-                        .foregroundColor(.white)
+                LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.6), Color.black.opacity(0.3)]),
+                               startPoint: .top,
+                               endPoint: .bottom)
+                    .ignoresSafeArea()
+                
+                VStack(spacing: 30) {
+                    Spacer()
                     
-                    Text("ReChord")
-                        .font(.system(size: 36, weight: .bold))
-                        .foregroundColor(.white)
-                }
-                
-                Spacer()
-                
-                // TextField
-                TextField("enter your email or phone number", text: $emailOrPhone)
-                    .padding()
-                    .background(Color(.systemGray6))
-                    .cornerRadius(10)
-                    .padding(.horizontal, 32)
-                
-                // Continue button
-                Button(action: {
-                    // handle continue
-                }) {
-                    Text("Continue")
-                        .fontWeight(.semibold)
-                        .frame(maxWidth: .infinity)
+                    VStack(spacing: 10) {
+                        Image("rechord_logo")
+                            .resizable()
+                            .scaledToFit()
+                            .frame(width: 120, height: 120)
+                        
+                        Text("ReChord")
+                            .font(.system(size: 36, weight: .bold))
+                            .foregroundColor(.white)
+                    }
+                    
+                    Spacer()
+                    
+                    TextField("enter your email or phone number", text: $emailOrPhone)
                         .padding()
-                        .background(Color.blue)
-                        .foregroundColor(.white)
+                        .background(Color(.systemGray6))
                         .cornerRadius(10)
-                }
-                .padding(.horizontal, 32)
-                
-                Text("or")
-                    .foregroundColor(.gray)
-                
-                // Google Button
-                Button(action: {
-                    // handle Google sign in
-                }) {
-                    HStack {
-                        Image(systemName: "globe")
-                            .foregroundColor(.black)
-                        Text("Continue with Google")
-                            .foregroundColor(.black)
-                            .fontWeight(.semibold)
+                        .padding(.horizontal, 32)
+                        .keyboardType(.emailAddress)
+                        .autocapitalization(.none)
+                    
+                    Button(action: {
+                        login()
+                    }) {
+                        if isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .cornerRadius(10)
+                        } else {
+                            Text("Continue")
+                                .fontWeight(.semibold)
+                                .frame(maxWidth: .infinity)
+                                .padding()
+                                .background(Color.blue)
+                                .foregroundColor(.white)
+                                .cornerRadius(10)
+                        }
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.white)
-                    .cornerRadius(10)
-                }
-                .padding(.horizontal, 32)
-                
-                // Apple Button
-                Button(action: {
-                    // handle Apple sign in
-                }) {
-                    HStack {
-                        Image(systemName: "applelogo")
+                    .padding(.horizontal, 32)
+                    
+                    if !loginMessage.isEmpty {
+                        Text(loginMessage)
                             .foregroundColor(.white)
-                        Text("Continue with Apple")
-                            .foregroundColor(.white)
-                            .fontWeight(.semibold)
+                            .padding(.top, 10)
                     }
-                    .frame(maxWidth: .infinity)
-                    .padding()
-                    .background(Color.black)
-                    .cornerRadius(10)
+                    
+                    Spacer()
+                    
+                    
+                    NavigationLink("", destination: OTPView(emailOrPhone: emailOrPhone), isActive: $navigateToOTP)
+                        .hidden()
                 }
-                .padding(.horizontal, 32)
-                
-                Spacer()
             }
         }
     }
-}
-
-struct LoginView_Previews: PreviewProvider {
-    static var previews: some View {
-        LoginView()
+    
+    func login() {
+        guard !emailOrPhone.isEmpty else {
+            loginMessage = "Please enter your email or phone."
+            return
+        }
+        
+        isLoading = true
+        loginMessage = ""
+        
+        guard let url = URL(string: "https://api.com/request-otp") else { return }
+        
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        let body: [String: Any] = ["emailOrPhone": emailOrPhone]
+        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async { self.isLoading = false }
+            
+            if let error = error {
+                DispatchQueue.main.async { self.loginMessage = " Error: \(error.localizedDescription)" }
+                return
+            }
+            
+            guard let data = data else { return }
+            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
+                DispatchQueue.main.async {
+                    if let success = json["success"] as? Bool, success {
+                       
+                        self.navigateToOTP = true
+                    } else {
+                        self.loginMessage = json["message"] as? String ?? " Failed to send OTP"
+                    }
+                }
+            }
+        }.resume()
     }
 }
