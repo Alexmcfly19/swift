@@ -1,122 +1,66 @@
 import SwiftUI
 
 struct LoginView: View {
-    @State private var emailOrPhone: String = ""
-    @State private var isLoading: Bool = false
-    @State private var loginMessage: String = ""
+    @State private var email: String = ""
     @State private var navigateToOTP = false
-    
+    @State private var isLoading = false
+    @State private var errorMessage: String?
+
     var body: some View {
         NavigationView {
             ZStack {
-                Image("earth_bg")
-                    .resizable()
-                    .scaledToFill()
-                    .ignoresSafeArea()
-                
-                LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.6), Color.black.opacity(0.3)]),
+ 
+                LinearGradient(gradient: Gradient(colors: [Color.black.opacity(0.6), Color.clear]),
                                startPoint: .top,
                                endPoint: .bottom)
                     .ignoresSafeArea()
                 
                 VStack(spacing: 30) {
-                    Spacer()
-                    
-                    VStack(spacing: 10) {
-                        Image("rechord_logo")
-                            .resizable()
-                            .scaledToFit()
-                            .frame(width: 120, height: 120)
-                        
-                        Text("ReChord")
-                            .font(.system(size: 36, weight: .bold))
+                    ReChordLogo()
+
+                    VStack(alignment: .leading, spacing: 8) {
+                        Text("Email")
                             .foregroundColor(.white)
+                            .font(.headline)
+                        TextField("Enter your email", text: $email)
+                            .textFieldStyle(RoundedBorderTextFieldStyle())
+                            .keyboardType(.emailAddress)
+                            .autocapitalization(.none)
                     }
-                    
-                    Spacer()
-                    
-                    TextField("enter your email or phone number", text: $emailOrPhone)
-                        .padding()
-                        .background(Color(.systemGray6))
-                        .cornerRadius(10)
-                        .padding(.horizontal, 32)
-                        .keyboardType(.emailAddress)
-                        .autocapitalization(.none)
-                    
+                    .padding(.horizontal, 30)
+
+                    if let error = errorMessage {
+                        Text(error)
+                            .foregroundColor(.red)
+                            .font(.caption)
+                    }
+
+                    NavigationLink(destination: OTPView(email: email), isActive: $navigateToOTP) {
+                        EmptyView()
+                    }
+
                     Button(action: {
-                        login()
-                    }) {
-                        if isLoading {
-                            ProgressView()
-                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .cornerRadius(10)
-                        } else {
-                            Text("Continue")
-                                .fontWeight(.semibold)
-                                .frame(maxWidth: .infinity)
-                                .padding()
-                                .background(Color.blue)
-                                .foregroundColor(.white)
-                                .cornerRadius(10)
+                        Task {
+                            isLoading = true
+                            let success = await APIService.shared.login(email: email)
+                            isLoading = false
+                            if success {
+                                navigateToOTP = true
+                            } else {
+                                errorMessage = "Login failed. Please try again."
+                            }
                         }
-                    }
-                    .padding(.horizontal, 32)
-                    
-                    if !loginMessage.isEmpty {
-                        Text(loginMessage)
+                    }) {
+                        Text(isLoading ? "Loading..." : "Login")
                             .foregroundColor(.white)
-                            .padding(.top, 10)
+                            .frame(maxWidth: .infinity)
+                            .padding()
+                            .background(Color.blue)
+                            .cornerRadius(10)
                     }
-                    
-                    Spacer()
-                    
-                    
-                    NavigationLink("", destination: OTPView(emailOrPhone: emailOrPhone), isActive: $navigateToOTP)
-                        .hidden()
+                    .padding(.horizontal, 30)
                 }
             }
         }
-    }
-    
-    func login() {
-        guard !emailOrPhone.isEmpty else {
-            loginMessage = "Please enter your email or phone."
-            return
-        }
-        
-        isLoading = true
-        loginMessage = ""
-        
-        guard let url = URL(string: "https://api.com/request-otp") else { return }
-        
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
-        let body: [String: Any] = ["emailOrPhone": emailOrPhone]
-        request.httpBody = try? JSONSerialization.data(withJSONObject: body)
-        
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async { self.isLoading = false }
-            
-            if let error = error {
-                DispatchQueue.main.async { self.loginMessage = " Error: \(error.localizedDescription)" }
-                return
-            }
-            
-            guard let data = data else { return }
-            if let json = try? JSONSerialization.jsonObject(with: data) as? [String: Any] {
-                DispatchQueue.main.async {
-                    if let success = json["success"] as? Bool, success {
-                       
-                        self.navigateToOTP = true
-                    } else {
-                        self.loginMessage = json["message"] as? String ?? " Failed to send OTP"
-                    }
-                }
-            }
-        }.resume()
     }
 }

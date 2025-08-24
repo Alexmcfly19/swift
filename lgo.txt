@@ -1,0 +1,12 @@
+import SwiftUI
+
+struct ReChordLogo: View {
+    var body: some View {
+        Image("rechord_logo") // your logo from Assets
+            .resizable()
+            .scaledToFit()
+            .frame(width: 120, height: 120)
+            .shadow(radius: 10)
+            .padding(.bottom, 20)
+    }
+}
