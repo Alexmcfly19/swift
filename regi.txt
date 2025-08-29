@@ -1,0 +1,141 @@
+// RegistrationView.swift
+
+import SwiftUI
+
+// MARK: - Models
+struct RegistrationRequest: Codable {
+    let email: String
+    let password: String
+    let fullName: String
+    let username: String
+}
+
+struct RegistrationResponse: Codable {
+    let userId: String
+    let message: String
+}
+
+// MARK: - ViewModel
+class RegistrationViewModel: ObservableObject {
+    @Published var email = ""
+    @Published var password = ""
+    @Published var fullName = ""
+    @Published var username = ""
+    @Published var isPasswordVisible = false
+    @Published var errorMessage: String?
+    @Published var isLoading = false
+    
+    func register() {
+        guard !email.isEmpty, !password.isEmpty, !fullName.isEmpty, !username.isEmpty else {
+            self.errorMessage = "Please fill in all fields."
+            return
+        }
+        
+        // ⚠️ Replace with your actual API endpoint
+        guard let url = URL(string: "https://api.example.com/v1/register") else { return }
+        
+        self.isLoading = true
+        self.errorMessage = nil
+        
+        let body = RegistrationRequest(email: email, password: password, fullName: fullName, username: username)
+
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = try? JSONEncoder().encode(body)
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.isLoading = false
+                guard error == nil else {
+                    self.errorMessage = "Network error."
+                    return
+                }
+
+                if let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 201 {
+                    print("✅ Registration successful!")
+                    // Handle success (e.g., pop to login screen, show success message)
+                } else {
+                    self.errorMessage = "Registration failed. Email or username may be taken."
+                }
+            }
+        }.resume()
+    }
+}
+
+// MARK: - View
+struct RegistrationView: View {
+    @StateObject private var viewModel = RegistrationViewModel()
+    
+    var body: some View {
+        ZStack {
+            LinearGradient(
+                gradient: Gradient(colors: [Color.blue.opacity(0.4), Color.black]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: 20) {
+                VStack {
+                    Text("ReChord").font(.largeTitle).fontWeight(.bold)
+                    Text("welcome").font(.headline).fontWeight(.light)
+                }.foregroundColor(.white).padding(.bottom, 30)
+
+                TextField("Please Enter Your Email", text: $viewModel.email)
+                    .textFieldStyle(CustomTextFieldStyle())
+                    .keyboardType(.emailAddress).autocapitalization(.none)
+
+                HStack {
+                    if viewModel.isPasswordVisible {
+                        TextField("Enter your Password", text: $viewModel.password)
+                    } else {
+                        SecureField("Enter your Password", text: $viewModel.password)
+                    }
+                    Button(action: { viewModel.isPasswordVisible.toggle() }) {
+                        Image(systemName: viewModel.isPasswordVisible ? "eye.slash" : "eye")
+                            .foregroundColor(.gray)
+                    }
+                }.padding().background(Color.white.opacity(0.8)).cornerRadius(10)
+
+                TextField("Full Name", text: $viewModel.fullName)
+                    .textFieldStyle(CustomTextFieldStyle())
+                
+                TextField("Choose a Username for Yourself", text: $viewModel.username)
+                    .textFieldStyle(CustomTextFieldStyle()).autocapitalization(.none)
+                
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red).font(.caption).multilineTextAlignment(.center)
+                        .padding(.horizontal)
+                }
+
+                Button(action: viewModel.register) {
+                    if viewModel.isLoading {
+                        ProgressView().progressViewStyle(CircularProgressViewStyle(tint: .white))
+                    } else {
+                        Text("Continue")
+                    }
+                }.frame(maxWidth: .infinity).padding().foregroundColor(.white)
+                 .background(Color.blue).cornerRadius(10)
+                 .disabled(viewModel.isLoading)
+                
+                Spacer()
+            }
+            .padding(30)
+            .navigationTitle("Create Account") // Sets the title for this screen
+            .navigationBarTitleDisplayMode(.inline) // Makes the title smaller
+            .navigationBarBackButtonHidden(false) // Ensures back button is visible
+        }
+    }
+}
+
+// Custom TextField Style to avoid repetition
+struct CustomTextFieldStyle: TextFieldStyle {
+    func _body(configuration: TextField<Self._Label>) -> some View {
+        configuration
+            .padding()
+            .background(Color.white.opacity(0.8))
+            .cornerRadius(10)
+    }
+}
