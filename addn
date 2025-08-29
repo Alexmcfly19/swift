@@ -1,0 +1,210 @@
+import SwiftUI
+
+// MARK: - 1. Model
+// These structs represent the data you send to and receive from the API.
+// The `Codable` protocol allows them to be easily converted to and from JSON.
+
+struct LoginRequest: Codable {
+    let email: String
+    let password: String
+}
+
+struct LoginResponse: Codable {
+    // Customize this based on what your API actually returns on success.
+    // It's common to get an authentication token.
+    let authToken: String
+    let userId: String
+}
+
+// MARK: - 2. ViewModel
+// The "brain" of our view. It handles the logic for logging in.
+
+class LoginViewModel: ObservableObject {
+    @Published var emailOrPhone = ""
+    @Published var password = ""
+    @Published var errorMessage: String?
+    @Published var isLoading = false
+    
+    // --- The Main Login Function ---
+    func login() {
+        // ⚠️ Replace this with your actual API endpoint
+        guard let url = URL(string: "https://api.example.com/v1/login") else {
+            self.errorMessage = "Invalid API URL."
+            return
+        }
+        
+        // Reset state before starting
+        self.errorMessage = nil
+        self.isLoading = true
+        
+        // 1. Create the request body
+        let requestBody = LoginRequest(email: emailOrPhone, password: password)
+        guard let encodedBody = try? JSONEncoder().encode(requestBody) else {
+            self.errorMessage = "Failed to encode request."
+            self.isLoading = false
+            return
+        }
+        
+        // 2. Configure the network request
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.setValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.httpBody = encodedBody
+        
+        // 3. Make the API call using URLSession
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            // Switch back to the main thread to update the UI
+            DispatchQueue.main.async {
+                self.isLoading = false
+                
+                // Handle network errors
+                if error != nil {
+                    self.errorMessage = "A network error occurred. Please try again."
+                    return
+                }
+                
+                // Ensure we have a valid HTTP response
+                guard let httpResponse = response as? HTTPURLResponse, httpResponse.statusCode == 200 else {
+                    self.errorMessage = "Invalid credentials. Please check your email and password."
+                    return
+                }
+                
+                // Ensure we got data
+                guard let data = data else {
+                    self.errorMessage = "Did not receive data from the server."
+                    return
+                }
+                
+                // 4. Decode the successful response
+                do {
+                    let loginResponse = try JSONDecoder().decode(LoginResponse.self, from: data)
+                    print("✅ Login successful!")
+                    print("Auth Token: \(loginResponse.authToken)")
+                    
+                    // --- SUCCESS ---
+                    // Here, you would save the auth token securely (e.g., in Keychain)
+                    // and navigate the user to the main part of the app.
+                    
+                } catch {
+                    self.errorMessage = "Failed to decode server response."
+                }
+            }
+        }.resume() // Starts the network request
+    }
+}
+
+
+// MARK: - 3. View
+// This is the SwiftUI code that creates the user interface.
+
+struct LoginView: View {
+    // Create an instance of our ViewModel
+    @StateObject private var viewModel = LoginViewModel()
+    
+    var body: some View {
+        ZStack {
+            // Background
+            LinearGradient(
+                gradient: Gradient(colors: [Color.blue.opacity(0.4), Color.black]),
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .edgesIgnoringSafeArea(.all)
+            
+            VStack(spacing: 20) {
+                // App Logo (Replace with your own logo)
+                Text("ReChord") // Using text as a placeholder for the logo
+                    .font(.largeTitle)
+                    .fontWeight(.bold)
+                    .foregroundColor(.white)
+                    .padding(.bottom, 40)
+                
+                // Email / Phone Field
+                TextField("enter your email or phone number", text: $viewModel.emailOrPhone)
+                    .padding()
+                    .background(Color.white.opacity(0.8))
+                    .cornerRadius(10)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                
+                // Password Field
+                SecureField("Please enter your Password", text: $viewModel.password)
+                    .padding()
+                    .background(Color.white.opacity(0.8))
+                    .cornerRadius(10)
+                
+                // Show error message if one exists
+                if let errorMessage = viewModel.errorMessage {
+                    Text(errorMessage)
+                        .foregroundColor(.red)
+                        .font(.caption)
+                        .multilineTextAlignment(.center)
+                }
+                
+                // Continue Button
+                Button(action: {
+                    viewModel.login()
+                }) {
+                    HStack {
+                        if viewModel.isLoading {
+                            ProgressView()
+                                .progressViewStyle(CircularProgressViewStyle(tint: .white))
+                        } else {
+                            Text("Continue")
+                        }
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .foregroundColor(.white)
+                    .background(Color.blue)
+                    .cornerRadius(10)
+                }
+                .disabled(viewModel.isLoading) // Disable button while loading
+                
+                // Divider
+                Text("or")
+                    .foregroundColor(.white.opacity(0.7))
+                
+                // Social Logins
+                Button(action: { /* Handle Google Sign-In */ }) {
+                    HStack {
+                        // Replace with Google's actual logo
+                        Image(systemName: "g.circle.fill")
+                        Text("Continue with Google")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .foregroundColor(.black)
+                    .background(Color.white)
+                    .cornerRadius(10)
+                }
+                
+                Button(action: { /* Handle Apple Sign-In */ }) {
+                    HStack {
+                         // Replace with Apple's actual logo
+                        Image(systemName: "apple.logo")
+                        Text("Continue with Apple")
+                    }
+                    .frame(maxWidth: .infinity)
+                    .padding()
+                    .foregroundColor(.white)
+                    .background(Color.black)
+                    .cornerRadius(10)
+                }
+                
+                Spacer()
+                
+                // Bottom links
+                HStack {
+                    Button("Don't have an account? create an account") { /* Navigate to sign up */ }
+                    Spacer()
+                    Button("Forget your password?") { /* Navigate to password reset */ }
+                }
+                .font(.footnote)
+                .foregroundColor(.white)
+                
+            }
+            .padding(30)
+        }
+    }
+}
