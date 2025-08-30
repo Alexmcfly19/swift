@@ -1,0 +1,13 @@
+// ContentView.swift
+
+import SwiftUI
+
+struct ContentView: View {
+    var body: some View {
+        // This NavigationStack provides the navigation capability to LoginView
+        // and any views it links to.
+        NavigationStack {
+            LoginView()
+        }
+    }
+}
